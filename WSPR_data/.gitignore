@@ -1,0 +1,105 @@
+# ==========================================
+
+# Python & Virtual Environments
+
+# ==========================================
+
+.venv/
+venv/
+ENV/
+env/
+pycache/
+*.py[cod]
+*$py.class
+
+# Distribution & Packaging (build, dist, editable .egg-info)
+
+dist/
+build/
+*.egg-info/
+*.egg
+.eggs/
+
+# ==========================================
+
+# Database Engines & Analytical Artifacts
+
+# ==========================================
+
+# SQLite
+
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# DuckDB & Columnar Formats
+
+*.duckdb
+*.duckdb.wal
+
+# Local Data Drops (prevent committing raw gigabyte files)
+
+data/
+*.parquet
+*.csv.gz
+*.tsv.gz
+
+# ==========================================
+
+# Testing, Linting & Type Checking
+
+# ==========================================
+
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# ==========================================
+
+# Environment Variables & Secrets
+
+# ==========================================
+
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ==========================================
+
+# IDEs & Editor Configuration
+
+# ==========================================
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ==========================================
+
+# LaTeX Build Artifacts (Lab Guides & Handouts)
+
+# ==========================================
+
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
