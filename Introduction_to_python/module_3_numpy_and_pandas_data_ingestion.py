@@ -3,6 +3,7 @@ TH Köln - Data Engineering (Prof. Dr. Peter Kern)
 Module 3: NumPy Arrays vs. Pandas DataFrames, CSV Ingestion & Statistical Inspection
 """
 
+
 import numpy as np
 import pandas as pd
 

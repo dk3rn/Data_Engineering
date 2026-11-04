@@ -44,8 +44,12 @@ def compute_safe_mean(raw_list):
         try:
             val = float(entry)
             clean_values.append(val)
-        except ValueError:
+        except ValueError as e:
             print(f"  [Warning] Ignoring corrupted sensor string: '{entry}'")
+            print(f"  [Debug] Exception details: {e}")
+    
+
+
 
     if not clean_values:
         return 0.0
@@ -60,6 +64,10 @@ if __name__ == "__main__":
     tank_2 = [1.8, 2.1, 1.9, 2.0]
     print(f"O2 Mean Tank 1: {compute_mean(tank_1)} mg/L")
     print(f"O2 Mean Tank 2: {compute_mean(tank_2)} mg/L")
+
+    #sensor_stream = ["4.2", "4.5", "Error", "4.1", "TIMEOUT", "4.4"]
+    #  print(compute_mean(sensor_stream))  # Edge case: empty list
+
 
     # 2. Default parameters & keyword arguments
     raw_data = [4.1, 4.3, 999.9, 4.0, 85.2, 4.2]
