@@ -7,7 +7,7 @@ import pandas as pd
 from importlib import import_module
 
 # Ensure the sample CSV from Module 3 exists
-module3 = import_module("03_numpy_und_pandas_import")
+module3 = import_module("module_3_numpy_and_pandas_data_ingestion")
 module3.create_sample_csv("bb12024.csv")
 
 

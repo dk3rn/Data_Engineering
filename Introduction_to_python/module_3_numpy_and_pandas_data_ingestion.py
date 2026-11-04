@@ -26,6 +26,13 @@ def create_sample_csv(filepath="bb12024.csv"):
         "temp_c": [11.4, 11.4, 11.3, 11.3, 11.3, 11.2, 11.2],
     }
     df_export = pd.DataFrame(data)
+    print(df_export.head)
+
+    print(df_export["zeit"])
+
+
+
+
     df_export.to_csv(filepath, index=False)
     return filepath
 
