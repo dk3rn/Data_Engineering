@@ -24,8 +24,8 @@ location = "Aeration Tank North"     # str (string)
 print(f"Location: {location} (ID: {plant_id}, Active: {sensor_active})")
 print(f"Runtime type of o2_reading ({o2_reading}): {type(o2_reading).__name__}")
 
-
-print(f"Adding 5 and 10 using addstuff function: {addstuff(5, 10)}")
+result = addstuff(5, 10)
+print(f"Adding 5 and 10 using addstuff function: {result}")
 
 
 
