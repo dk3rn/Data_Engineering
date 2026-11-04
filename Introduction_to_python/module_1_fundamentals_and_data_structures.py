@@ -38,31 +38,21 @@ def demonstrate_fundamentals():
     print(f"Temperature ({temperature} °C): {climate_status}")
 
     # 4. Control Structures - Loops (for, while, break, continue)
-    raw_readings = [4.2, -0.5, 4.5, 4.1, 999.9, 4.3]
-    valid_readings = []
+
+
+    raw_readings = [10.0, -1.0, -2.0, 30.0]
+    print(f"Original list: {raw_readings}")
 
     for value in raw_readings:
         if value < 0.0:
-            print(f"  [continue] Skipping negative calibration error: {value}")
-            continue
-        if value > 500.0:
-            print(f"  [break] Critical hardware fault ({value}) -> Aborting loop!")
-            break
-        valid_readings.append(value)
+            print(f"Removing negative value: {value}")
+            raw_readings.remove(value) 
 
-    # 5. Built-in Data Structures: List (mutable), Tuple (immutable), Dictionary (Key-Value)
-    valid_readings.sort()
-    threshold_tuple = (0.5, 8.0)  # Immutable tuple (min, max)
-    sensor_dict = {
-        "id": plant_id,
-        "type": "O2 Probe",
-        "values": valid_readings,
-        "thresholds": threshold_tuple,
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
+    print(f"----------------------Resulting list: {raw_readings}")
 
-    print(f"Sorted reading list (Index 0 = {valid_readings[0]}): {valid_readings}")
-    print(f"Dictionary lookup: Type={sensor_dict['type']}, Time={sensor_dict['timestamp']}\n")
+
+
+
 
 
 if __name__ == "__main__":

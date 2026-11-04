@@ -5,11 +5,13 @@
 import math
 import pandas as pd
 
+
 #functions
 def addstuff(a, b):
     """Adds two numbers and returns the result."""
     result = a + b
     return result
+
 
 
 #main execution block
