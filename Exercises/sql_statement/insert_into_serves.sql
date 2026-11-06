@@ -1,0 +1,1 @@
+INSERT INTO serves VALUES(1, 1, 9.50);
