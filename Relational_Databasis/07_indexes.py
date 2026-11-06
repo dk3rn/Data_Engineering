@@ -1,42 +1,39 @@
 """
-06 - Transactions (ACID)
-========================
-A transaction is "all or nothing": either every statement succeeds,
-or the database is left exactly as it was before.
+07 - Indexes: why databases can search fast
+===========================================
+Without an index the DBMS must read every row (full table scan).
+An index (a B-tree) lets it jump directly to the matching rows.
 """
+import random
 import sqlite3
+import time
 
-conn = sqlite3.connect("bars.db")
-conn.execute("PRAGMA foreign_keys = ON")
+random.seed(42)
+conn = sqlite3.connect(":memory:")
+conn.execute("CREATE TABLE orders (o_id INTEGER PRIMARY KEY, customer TEXT, amount REAL)")
+
+N = 1_000_000
+rows = ((f"customer_{random.randint(1, 100_000)}", round(random.uniform(5, 50), 2))
+        for _ in range(N))
+conn.executemany("INSERT INTO orders (customer, amount) VALUES (?, ?)", rows)
+conn.commit()
+print(f"{N:,} orders inserted")
+
+QUERY = "SELECT COUNT(*), SUM(amount) FROM orders WHERE customer = ?"
 
 
-def total_offers():
-    return conn.execute("SELECT COUNT(*) FROM serves").fetchone()[0]
+def measure(label, repetitions=200):
+    start = time.perf_counter()
+    for i in range(repetitions):
+        conn.execute(QUERY, (f"customer_{i + 1}",)).fetchone()
+    ms = (time.perf_counter() - start) / repetitions * 1000
+    plan = conn.execute("EXPLAIN QUERY PLAN " + QUERY, ("x",)).fetchall()[0][-1]
+    print(f"{label:<15} {ms:8.3f} ms/query   plan: {plan}")
+    return ms
 
 
-print("Offers before:", total_offers())
-
-# 'with conn:' = commit on success, ROLLBACK on any exception
-try:
-    with conn:
-        # A new bar opens and takes over the menu of 'Dom Cocktails' ...
-        cur = conn.execute(
-            "INSERT INTO bar (name, city, opening_date) VALUES (?, ?, date('now'))",
-            ("Hochschul-Bar", "Gummersbach"),
-        )
-        new_id = cur.lastrowid
-        conn.execute(
-            "INSERT INTO serves (b_id, c_id, price) "
-            "SELECT ?, c_id, price FROM serves WHERE b_id = 3",
-            (new_id,),
-        )
-        print("  inside transaction:", total_offers(), "offers")
-        # ... but then something goes wrong (price must be > 0):
-        conn.execute("INSERT INTO serves VALUES (?, ?, ?)", (new_id, 5, 0))
-except sqlite3.IntegrityError as e:
-    print("  error:", e, "-> ROLLBACK")
-
-print("Offers after: ", total_offers())   # unchanged - atomicity!
-print("Hochschul-Bar exists?",
-      conn.execute("SELECT COUNT(*) FROM bar WHERE name='Hochschul-Bar'").fetchone()[0] == 1)
+t1 = measure("without index", repetitions=20)
+conn.execute("CREATE INDEX idx_orders_customer ON orders(customer)")
+t2 = measure("with index")
+print(f"-> about {t1 / t2:,.0f}x faster")
 conn.close()

@@ -1,40 +1,46 @@
 """
-05 - UPDATE, DELETE and integrity constraints
-=============================================
-The DBMS - not your program - guarantees that the data stays consistent.
+06 - Transactions (ACID)
+========================
+A transaction is "all or nothing": either every statement succeeds,
+or the database is left exactly as it was before.
 """
 import sqlite3
+from pathlib import Path
 
-conn = sqlite3.connect("bars.db")
+# Database file next to this script - works no matter from which folder you start Python
+DB_PATH = Path(__file__).resolve().parent / "bars.db"
+
+conn = sqlite3.connect(DB_PATH)
 conn.execute("PRAGMA foreign_keys = ON")
 
-# --- UPDATE: change data in ONE place (no redundancy!) -----------------------
-cur = conn.execute(
-    "UPDATE serves SET price = ROUND(price * 1.10, 2) WHERE b_id = ?", (2,)
-)
-print("Price increase at bar 2 ->", cur.rowcount, "rows updated")
-conn.commit()
 
-# --- Constraint violations raise sqlite3.IntegrityError ----------------------
-tests = {
-    "NOT NULL":    ("INSERT INTO bar (name, city) VALUES (?, ?)", (None, "Köln")),
-    "UNIQUE":      ("INSERT INTO cocktail (name) VALUES (?)", ("Mojito",)),
-    "CHECK":       ("INSERT INTO serves VALUES (?, ?, ?)", (1, 3, -5.0)),
-    "PRIMARY KEY": ("INSERT INTO serves VALUES (?, ?, ?)", (1, 1, 9.0)),
-    "FOREIGN KEY": ("INSERT INTO serves VALUES (?, ?, ?)", (99, 1, 9.0)),
-}
-for constraint, (sql, params) in tests.items():
-    try:
-        conn.execute(sql, params)
-    except sqlite3.IntegrityError as e:
-        print(f"{constraint:<12} rejected: {e}")
+def total_offers():
+    return conn.execute("SELECT COUNT(*) FROM serves").fetchone()[0]
 
-# --- DELETE with ON DELETE CASCADE -------------------------------------------
-before = conn.execute("SELECT COUNT(*) FROM serves").fetchone()[0]
-conn.execute("DELETE FROM bar WHERE name = ?", ("Campus Corner",))
-after = conn.execute("SELECT COUNT(*) FROM serves").fetchone()[0]
-print(f"\nDeleted 'Campus Corner': serves rows {before} -> {after} (cascade)")
 
-conn.rollback()        # undo the delete - we still need the bar for later scripts
-print("Rolled back, bars:", conn.execute("SELECT COUNT(*) FROM bar").fetchone()[0])
+print("Offers before:", total_offers())
+
+# 'with conn:' = commit on success, ROLLBACK on any exception
+try:
+    with conn:
+        # A new bar opens and takes over the menu of 'Dom Cocktails' ...
+        cur = conn.execute(
+            "INSERT INTO bar (name, city, opening_date) VALUES (?, ?, date('now'))",
+            ("Hochschul-Bar", "Gummersbach"),
+        )
+        new_id = cur.lastrowid
+        conn.execute(
+            "INSERT INTO serves (b_id, c_id, price) "
+            "SELECT ?, c_id, price FROM serves WHERE b_id = 3",
+            (new_id,),
+        )
+        print("  inside transaction:", total_offers(), "offers")
+        # ... but then something goes wrong (price must be > 0):
+        conn.execute("INSERT INTO serves VALUES (?, ?, ?)", (new_id, 5, 0))
+except sqlite3.IntegrityError as e:
+    print("  error:", e, "-> ROLLBACK")
+
+print("Offers after: ", total_offers())   # unchanged - atomicity!
+print("Hochschul-Bar exists?",
+      conn.execute("SELECT COUNT(*) FROM bar WHERE name='Hochschul-Bar'").fetchone()[0] == 1)
 conn.close()

@@ -1,68 +1,73 @@
 """
-02 - Creating the database schema (DDL)
-=======================================
-Running example from the lectures: bars, cocktails and ingredients.
-
-  bar  1 ---- n  serves  n ---- 1  cocktail  1 ---- n  contains  n ---- 1  ingredient
-               (price)                                (amount_cl)
-
-The M:N relationships become own tables ("weak entities") whose primary key
-is the combination of the two foreign keys.
+03 - Inserting data (DML) with parameters
+=========================================
+NEVER build SQL with f-strings or + : use placeholders (?) instead.
+The driver escapes the values for you -> protection against SQL injection.
 """
 import sqlite3
+from pathlib import Path
 
-SCHEMA = """
-DROP TABLE IF EXISTS contains;
-DROP TABLE IF EXISTS serves;
-DROP TABLE IF EXISTS ingredient;
-DROP TABLE IF EXISTS cocktail;
-DROP TABLE IF EXISTS bar;
+# Database file next to this script - works no matter from which folder you start Python
+DB_PATH = Path(__file__).resolve().parent / "bars.db"
 
-CREATE TABLE bar (
-    b_id          INTEGER PRIMARY KEY,          -- artificial key (auto-increment)
-    name          TEXT    NOT NULL,
-    city          TEXT    NOT NULL,
-    opening_date  TEXT                           -- ISO 8601: 'YYYY-MM-DD'
-);
+conn = sqlite3.connect(DB_PATH)
+conn.execute("PRAGMA foreign_keys = ON")   # SQLite: FK checks are OFF by default!
+cur = conn.cursor()
 
-CREATE TABLE cocktail (
-    c_id  INTEGER PRIMARY KEY,
-    name  TEXT NOT NULL UNIQUE
-);
+# --- Single row ---------------------------------------------------------------
+cur.execute(
+    "INSERT INTO bar (name, city, opening_date) VALUES (?, ?, ?)",
+    ("Rheinblick Lounge", "Köln", "2015-04-01"),
+)
+print("New bar got b_id =", cur.lastrowid)
 
-CREATE TABLE ingredient (
-    i_id      INTEGER PRIMARY KEY,
-    name      TEXT    NOT NULL UNIQUE,
-    is_sweet  INTEGER NOT NULL CHECK (is_sweet IN (0, 1))   -- boolean
-);
+# --- Many rows at once: executemany -------------------------------------------
+bars = [
+    ("Oberberg Tiki Bar", "Gummersbach", "2019-09-13"),
+    ("Dom Cocktails", "Köln", "2008-11-20"),
+    ("Campus Corner", "Gummersbach", None),          # NULL = unknown
+]
+cur.executemany("INSERT INTO bar (name, city, opening_date) VALUES (?, ?, ?)", bars)
 
--- M:N  bar <-> cocktail, with relationship attribute "price"
-CREATE TABLE serves (
-    b_id   INTEGER NOT NULL REFERENCES bar(b_id)      ON DELETE CASCADE,
-    c_id   INTEGER NOT NULL REFERENCES cocktail(c_id) ON DELETE CASCADE,
-    price  REAL    NOT NULL CHECK (price > 0),
-    PRIMARY KEY (b_id, c_id)
-);
+cocktails = [("Mojito",), ("Caipirinha",), ("Cuba Libre",), ("Piña Colada",), ("Virgin Colada",)]
+cur.executemany("INSERT INTO cocktail (name) VALUES (?)", cocktails)
 
--- M:N  cocktail <-> ingredient, with relationship attribute "amount_cl"
-CREATE TABLE contains (
-    c_id       INTEGER NOT NULL REFERENCES cocktail(c_id)   ON DELETE CASCADE,
-    i_id       INTEGER NOT NULL REFERENCES ingredient(i_id),
-    amount_cl  REAL,
-    PRIMARY KEY (c_id, i_id)
-);
-"""
+ingredients = [
+    ("White Rum", 0), ("Lime", 0), ("Cane Sugar", 1), ("Mint", 0), ("Soda Water", 0),
+    ("Cachaça", 0), ("Cola", 1), ("Coconut Cream", 1), ("Pineapple Juice", 1),
+]
+cur.executemany("INSERT INTO ingredient (name, is_sweet) VALUES (?, ?)", ingredients)
 
-with sqlite3.connect("bars.db") as conn:
-    conn.executescript(SCHEMA)          # runs several statements at once
+# Relationship tables: (b_id, c_id, price) and (c_id, i_id, amount_cl)
+serves = [
+    (1, 1, 9.50), (1, 2, 9.00), (1, 4, 10.50),
+    (2, 1, 8.00), (2, 3, 7.50), (2, 4, 9.00), (2, 5, 6.50),
+    (3, 1, 11.00), (3, 2, 10.00), (3, 3, 9.00),
+    (4, 3, 6.00), (4, 5, 5.00),
+]
+cur.executemany("INSERT INTO serves (b_id, c_id, price) VALUES (?, ?, ?)", serves)
 
-    # Which tables exist now? SQLite keeps its catalog in sqlite_schema
-    tables = conn.execute(
-        "SELECT name FROM sqlite_schema WHERE type = 'table' ORDER BY name"
-    ).fetchall()
-    print("Tables:", [t[0] for t in tables])
+contains = [
+    (1, 1, 5), (1, 2, 2), (1, 3, 2), (1, 4, None), (1, 5, 6),   # Mojito
+    (2, 6, 5), (2, 2, 3), (2, 3, 2),                            # Caipirinha
+    (3, 1, 4), (3, 7, 12), (3, 2, 1),                           # Cuba Libre
+    (4, 1, 4), (4, 8, 4), (4, 9, 12),                           # Piña Colada
+    (5, 8, 4), (5, 9, 16),                                      # Virgin Colada
+]
+cur.executemany("INSERT INTO contains (c_id, i_id, amount_cl) VALUES (?, ?, ?)", contains)
 
-    # Inspect the columns of one table
-    for col in conn.execute("PRAGMA table_info(serves)"):
-        print(col)
+conn.commit()      # make the changes permanent (end of transaction)
+
+for table in ("bar", "cocktail", "ingredient", "serves", "contains"):
+    n = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]   # table names cannot be parameters
+    print(f"{table:<11} {n:>3} rows")
+
 conn.close()
+
+# ---------------------------------------------------------------------------
+# Why placeholders matter - the classic SQL injection:
+#
+#   user_input = "x'; DROP TABLE bar; --"
+#   sql = f"SELECT * FROM bar WHERE name = '{user_input}'"     # DANGEROUS
+#   conn.execute("SELECT * FROM bar WHERE name = ?", (user_input,))  # SAFE
+# ---------------------------------------------------------------------------

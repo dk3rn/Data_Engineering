@@ -1,58 +1,44 @@
 """
-04 - Querying data (SELECT, WHERE, ORDER BY, JOIN, GROUP BY)
-============================================================
+05 - UPDATE, DELETE and integrity constraints
+=============================================
+The DBMS - not your program - guarantees that the data stays consistent.
 """
 import sqlite3
+from pathlib import Path
 
-conn = sqlite3.connect("bars.db")
-conn.row_factory = sqlite3.Row      # rows behave like dicts: row["name"]
+# Database file next to this script - works no matter from which folder you start Python
+DB_PATH = Path(__file__).resolve().parent / "bars.db"
 
-# --- 1. Simple filter + sorting ----------------------------------------------
-print("Bars in Köln:")
-for row in conn.execute(
-    "SELECT name, opening_date FROM bar WHERE city = ? ORDER BY opening_date",
-    ("Köln",),
-):
-    print(f"  {row['name']:<20} since {row['opening_date']}")
+conn = sqlite3.connect(DB_PATH)
+conn.execute("PRAGMA foreign_keys = ON")
 
-# --- 2. fetchone / fetchall ---------------------------------------------------
-cheapest = conn.execute("SELECT MIN(price) AS p FROM serves").fetchone()
-print("\nCheapest drink costs", cheapest["p"], "EUR")
-
-# --- 3. JOIN: combine the tables via their keys ------------------------------
-sql = """
-SELECT b.name AS bar, c.name AS cocktail, s.price
-FROM   serves   s
-JOIN   bar      b ON b.b_id = s.b_id
-JOIN   cocktail c ON c.c_id = s.c_id
-WHERE  c.name = ?
-ORDER  BY s.price
-"""
-print("\nWhere can I get a Mojito?")
-for row in conn.execute(sql, ("Mojito",)):
-    print(f"  {row['bar']:<20} {row['price']:>6.2f} EUR")
-
-# --- 4. Aggregation: GROUP BY ------------------------------------------------
-sql = """
-SELECT b.city,
-       COUNT(*)             AS offers,
-       ROUND(AVG(s.price),2) AS avg_price
-FROM   serves s JOIN bar b ON b.b_id = s.b_id
-GROUP  BY b.city
-ORDER  BY avg_price DESC
-"""
-print("\nAverage price per city:")
-for row in conn.execute(sql):
-    print(f"  {row['city']:<12} {row['offers']} offers, avg {row['avg_price']} EUR")
-
-# --- 5. Which cocktails are alcohol-free?  (subquery) ------------------------
-sql = """
-SELECT name FROM cocktail
-WHERE  c_id NOT IN (
-    SELECT c.c_id FROM contains c JOIN ingredient i ON i.i_id = c.i_id
-    WHERE  i.name IN ('White Rum', 'Cachaça')
+# --- UPDATE: change data in ONE place (no redundancy!) -----------------------
+cur = conn.execute(
+    "UPDATE serves SET price = ROUND(price * 1.10, 2) WHERE b_id = ?", (2,)
 )
-"""
-print("\nAlcohol-free:", [r["name"] for r in conn.execute(sql)])
+print("Price increase at bar 2 ->", cur.rowcount, "rows updated")
+conn.commit()
 
+# --- Constraint violations raise sqlite3.IntegrityError ----------------------
+tests = {
+    "NOT NULL":    ("INSERT INTO bar (name, city) VALUES (?, ?)", (None, "Köln")),
+    "UNIQUE":      ("INSERT INTO cocktail (name) VALUES (?)", ("Mojito",)),
+    "CHECK":       ("INSERT INTO serves VALUES (?, ?, ?)", (1, 3, -5.0)),
+    "PRIMARY KEY": ("INSERT INTO serves VALUES (?, ?, ?)", (1, 1, 9.0)),
+    "FOREIGN KEY": ("INSERT INTO serves VALUES (?, ?, ?)", (99, 1, 9.0)),
+}
+for constraint, (sql, params) in tests.items():
+    try:
+        conn.execute(sql, params)
+    except sqlite3.IntegrityError as e:
+        print(f"{constraint:<12} rejected: {e}")
+
+# --- DELETE with ON DELETE CASCADE -------------------------------------------
+before = conn.execute("SELECT COUNT(*) FROM serves").fetchone()[0]
+conn.execute("DELETE FROM bar WHERE name = ?", ("Campus Corner",))
+after = conn.execute("SELECT COUNT(*) FROM serves").fetchone()[0]
+print(f"\nDeleted 'Campus Corner': serves rows {before} -> {after} (cascade)")
+
+conn.rollback()        # undo the delete - we still need the bar for later scripts
+print("Rolled back, bars:", conn.execute("SELECT COUNT(*) FROM bar").fetchone()[0])
 conn.close()

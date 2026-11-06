@@ -1,69 +1,62 @@
 """
-03 - Inserting data (DML) with parameters
-=========================================
-NEVER build SQL with f-strings or + : use placeholders (?) instead.
-The driver escapes the values for you -> protection against SQL injection.
+04 - Querying data (SELECT, WHERE, ORDER BY, JOIN, GROUP BY)
+============================================================
 """
 import sqlite3
+from pathlib import Path
 
-conn = sqlite3.connect("bars.db")
-conn.execute("PRAGMA foreign_keys = ON")   # SQLite: FK checks are OFF by default!
-cur = conn.cursor()
+# Database file next to this script - works no matter from which folder you start Python
+DB_PATH = Path(__file__).resolve().parent / "bars.db"
 
-# --- Single row ---------------------------------------------------------------
-cur.execute(
-    "INSERT INTO bar (name, city, opening_date) VALUES (?, ?, ?)",
-    ("Rheinblick Lounge", "Köln", "2015-04-01"),
+conn = sqlite3.connect(DB_PATH)
+conn.row_factory = sqlite3.Row      # rows behave like dicts: row["name"]
+
+# --- 1. Simple filter + sorting ----------------------------------------------
+print("Bars in Köln:")
+for row in conn.execute(
+    "SELECT name, opening_date FROM bar WHERE city = ? ORDER BY opening_date",
+    ("Köln",),
+):
+    print(f"  {row['name']:<20} since {row['opening_date']}")
+
+# --- 2. fetchone / fetchall ---------------------------------------------------
+cheapest = conn.execute("SELECT MIN(price) AS p FROM serves").fetchone()
+print("\nCheapest drink costs", cheapest["p"], "EUR")
+
+# --- 3. JOIN: combine the tables via their keys ------------------------------
+sql = """
+SELECT b.name AS bar, c.name AS cocktail, s.price
+FROM   serves   s
+JOIN   bar      b ON b.b_id = s.b_id
+JOIN   cocktail c ON c.c_id = s.c_id
+WHERE  c.name = ?
+ORDER  BY s.price
+"""
+print("\nWhere can I get a Mojito?")
+for row in conn.execute(sql, ("Mojito",)):
+    print(f"  {row['bar']:<20} {row['price']:>6.2f} EUR")
+
+# --- 4. Aggregation: GROUP BY ------------------------------------------------
+sql = """
+SELECT b.city,
+       COUNT(*)             AS offers,
+       ROUND(AVG(s.price),2) AS avg_price
+FROM   serves s JOIN bar b ON b.b_id = s.b_id
+GROUP  BY b.city
+ORDER  BY avg_price DESC
+"""
+print("\nAverage price per city:")
+for row in conn.execute(sql):
+    print(f"  {row['city']:<12} {row['offers']} offers, avg {row['avg_price']} EUR")
+
+# --- 5. Which cocktails are alcohol-free?  (subquery) ------------------------
+sql = """
+SELECT name FROM cocktail
+WHERE  c_id NOT IN (
+    SELECT c.c_id FROM contains c JOIN ingredient i ON i.i_id = c.i_id
+    WHERE  i.name IN ('White Rum', 'Cachaça')
 )
-print("New bar got b_id =", cur.lastrowid)
-
-# --- Many rows at once: executemany -------------------------------------------
-bars = [
-    ("Oberberg Tiki Bar", "Gummersbach", "2019-09-13"),
-    ("Dom Cocktails", "Köln", "2008-11-20"),
-    ("Campus Corner", "Gummersbach", None),          # NULL = unknown
-]
-cur.executemany("INSERT INTO bar (name, city, opening_date) VALUES (?, ?, ?)", bars)
-
-cocktails = [("Mojito",), ("Caipirinha",), ("Cuba Libre",), ("Piña Colada",), ("Virgin Colada",)]
-cur.executemany("INSERT INTO cocktail (name) VALUES (?)", cocktails)
-
-ingredients = [
-    ("White Rum", 0), ("Lime", 0), ("Cane Sugar", 1), ("Mint", 0), ("Soda Water", 0),
-    ("Cachaça", 0), ("Cola", 1), ("Coconut Cream", 1), ("Pineapple Juice", 1),
-]
-cur.executemany("INSERT INTO ingredient (name, is_sweet) VALUES (?, ?)", ingredients)
-
-# Relationship tables: (b_id, c_id, price) and (c_id, i_id, amount_cl)
-serves = [
-    (1, 1, 9.50), (1, 2, 9.00), (1, 4, 10.50),
-    (2, 1, 8.00), (2, 3, 7.50), (2, 4, 9.00), (2, 5, 6.50),
-    (3, 1, 11.00), (3, 2, 10.00), (3, 3, 9.00),
-    (4, 3, 6.00), (4, 5, 5.00),
-]
-cur.executemany("INSERT INTO serves (b_id, c_id, price) VALUES (?, ?, ?)", serves)
-
-contains = [
-    (1, 1, 5), (1, 2, 2), (1, 3, 2), (1, 4, None), (1, 5, 6),   # Mojito
-    (2, 6, 5), (2, 2, 3), (2, 3, 2),                            # Caipirinha
-    (3, 1, 4), (3, 7, 12), (3, 2, 1),                           # Cuba Libre
-    (4, 1, 4), (4, 8, 4), (4, 9, 12),                           # Piña Colada
-    (5, 8, 4), (5, 9, 16),                                      # Virgin Colada
-]
-cur.executemany("INSERT INTO contains (c_id, i_id, amount_cl) VALUES (?, ?, ?)", contains)
-
-conn.commit()      # make the changes permanent (end of transaction)
-
-for table in ("bar", "cocktail", "ingredient", "serves", "contains"):
-    n = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]   # table names cannot be parameters
-    print(f"{table:<11} {n:>3} rows")
+"""
+print("\nAlcohol-free:", [r["name"] for r in conn.execute(sql)])
 
 conn.close()
-
-# ---------------------------------------------------------------------------
-# Why placeholders matter - the classic SQL injection:
-#
-#   user_input = "x'; DROP TABLE bar; --"
-#   sql = f"SELECT * FROM bar WHERE name = '{user_input}'"     # DANGEROUS
-#   conn.execute("SELECT * FROM bar WHERE name = ?", (user_input,))  # SAFE
-# ---------------------------------------------------------------------------

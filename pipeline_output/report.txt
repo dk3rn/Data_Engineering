@@ -1,0 +1,15 @@
+DATA-QUALITY REPORT
+===================
+rows in raw file              : 13,074
+duplicates removed            : 150
+°F values converted to °C     : 150
+missing / unreadable values   : 119
+values interpolated           : 232
+values still missing          : 37
+rows in clean data            : 12,960
+
+Outliers per method:
+                rule_based  z_score(global)  IQR(global)  hampel(local)  removed
+column                                                                          
+temperature_c           25               54           47             89      114
+vibration_mm_s           0               35           39             46       46
