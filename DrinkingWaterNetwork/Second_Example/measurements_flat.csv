@@ -1,0 +1,37 @@
+timestamp,sensor_code,sensor_name,sensor_position_m,pipe_code,pipe_material,pipe_diameter_mm,pipe_install_year,from_junction,from_junction_position,to_junction,to_junction_position,quantity,unit_symbol,unit_name,value
+2026-11-10 08:00:00,S-101,Inlet probe,15,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,pressure,bar,Bar,4.11
+2026-11-10 08:00:00,S-101,Inlet probe,15,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,temperature,degC,Degree Celsius,11.02
+2026-11-10 08:00:00,S-102,Flow meter North,95,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,flow rate,m3/h,Cubic metres per hour,38.69
+2026-11-10 08:00:00,S-201,Pressure gauge Mid,40,P-02,Cast iron,150,1987,J-B,120;0,J-C,120;80,pressure,bar,Bar,3.68
+2026-11-10 08:00:00,S-301,Multi probe East,60,P-03,PE-HD,90,2019,J-C,120;80,J-D,250;80,pressure,bar,Bar,3.92
+2026-11-10 08:00:00,S-301,Multi probe East,60,P-03,PE-HD,90,2019,J-C,120;80,J-D,250;80,flow rate,m3/h,Cubic metres per hour,37.39
+2026-11-10 08:10:00,S-101,Inlet probe,15,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,pressure,bar,Bar,3.98
+2026-11-10 08:10:00,S-101,Inlet probe,15,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,temperature,degC,Degree Celsius,11.51
+2026-11-10 08:10:00,S-102,Flow meter North,95,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,flow rate,m3/h,Cubic metres per hour,35.89
+2026-11-10 08:10:00,S-201,Pressure gauge Mid,40,P-02,Cast iron,150,1987,J-B,120;0,J-C,120;80,pressure,bar,Bar,3.87
+2026-11-10 08:10:00,S-301,Multi probe East,60,P-03,PE-HD,90,2019,J-C,120;80,J-D,250;80,pressure,bar,Bar,3.68
+2026-11-10 08:10:00,S-301,Multi probe East,60,P-03,PE-HD,90,2019,J-C,120;80,J-D,250;80,flow rate,m3/h,Cubic metres per hour,36.13
+2026-11-10 08:20:00,S-101,Inlet probe,15,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,pressure,bar,Bar,4.16
+2026-11-10 08:20:00,S-101,Inlet probe,15,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,temperature,degC,Degree Celsius,11.95
+2026-11-10 08:20:00,S-102,Flow meter North,95,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,flow rate,m3/h,Cubic metres per hour,36.28
+2026-11-10 08:20:00,S-201,Pressure gauge Mid,40,P-02,Cast iron,150,1987,J-B,120;0,J-C,120;80,pressure,bar,Bar,3.76
+2026-11-10 08:20:00,S-301,Multi probe East,60,P-03,PE-HD,90,2019,J-C,120;80,J-D,250;80,pressure,bar,Bar,3.96
+2026-11-10 08:20:00,S-301,Multi probe East,60,P-03,PE-HD,90,2019,J-C,120;80,J-D,250;80,flow rate,m3/h,Cubic metres per hour,40.04
+2026-11-10 08:30:00,S-101,Inlet probe,15,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,pressure,bar,Bar,4.24
+2026-11-10 08:30:00,S-101,Inlet probe,15,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,temperature,degC,Degree Celsius,11.36
+2026-11-10 08:30:00,S-102,Flow meter North,95,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,flow rate,m3/h,Cubic metres per hour,40.17
+2026-11-10 08:30:00,S-201,Pressure gauge Mid,40,P-02,Cast iron,150,1987,J-B,120;0,J-C,120;80,pressure,bar,Bar,3.67
+2026-11-10 08:30:00,S-301,Multi probe East,60,P-03,PE-HD,90,2019,J-C,120;80,J-D,250;80,pressure,bar,Bar,4.08
+2026-11-10 08:30:00,S-301,Multi probe East,60,P-03,PE-HD,90,2019,J-C,120;80,J-D,250;80,flow rate,m3/h,Cubic metres per hour,37.04
+2026-11-10 08:40:00,S-101,Inlet probe,15,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,pressure,bar,Bar,4.02
+2026-11-10 08:40:00,S-101,Inlet probe,15,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,temperature,degC,Degree Celsius,10.97
+2026-11-10 08:40:00,S-102,Flow meter North,95,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,flow rate,m3/h,Cubic metres per hour,37.13
+2026-11-10 08:40:00,S-201,Pressure gauge Mid,40,P-02,Cast iron,150,1987,J-B,120;0,J-C,120;80,pressure,bar,Bar,4.06
+2026-11-10 08:40:00,S-301,Multi probe East,60,P-03,PE-HD,90,2019,J-C,120;80,J-D,250;80,pressure,bar,Bar,3.74
+2026-11-10 08:40:00,S-301,Multi probe East,60,P-03,PE-HD,90,2019,J-C,120;80,J-D,250;80,flow rate,m3/h,Cubic metres per hour,38.37
+2026-11-10 08:50:00,S-101,Inlet probe,15,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,pressure,bar,Bar,4.27
+2026-11-10 08:50:00,S-101,Inlet probe,15,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,temperature,degC,Degree Celsius,11.32
+2026-11-10 08:50:00,S-102,Flow meter North,95,P-01,PVC,110,2008,J-A,0;0,J-B,120;0,flow rate,m3/h,Cubic metres per hour,38.22
+2026-11-10 08:50:00,S-201,Pressure gauge Mid,40,P-02,Cast iron,150,1987,J-B,120;0,J-C,120;80,pressure,bar,Bar,3.68
+2026-11-10 08:50:00,S-301,Multi probe East,60,P-03,PE-HD,90,2019,J-C,120;80,J-D,250;80,pressure,bar,Bar,3.68
+2026-11-10 08:50:00,S-301,Multi probe East,60,P-03,PE-HD,90,2019,J-C,120;80,J-D,250;80,flow rate,m3/h,Cubic metres per hour,36.66
